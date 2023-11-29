@@ -3,7 +3,7 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const cors = require("cors")({ origin: true });
 const app = express();
-const port = 3000; 
+const port = 8000; 
 
 const MID = "BCRUISEPL";
 const SEC_ID = "bcruisepl";
