@@ -13,9 +13,9 @@ const RETURN_URL = 'https://www.alfrescogrand.com/getlinkresponse';
 const client = new billdeskjs(MID, SEC_ID, CHECKSUM_KEY, RETURN_URL);
 
 app.use(bodyParser.json());
+app.use(cors());
 
 app.post('/getlink', (request, res) => {
-    cors(request, res, () => {
     const amount = request.body.amount;
     const id = request.body.id;
     const phone = request.body.phone;
@@ -25,9 +25,7 @@ app.post('/getlink', (request, res) => {
     const linkk = "https://pgi.billdesk.com/pgidsk/PGIMerchantPayment" + "?msg=" + msg;
     res.send(linkk);
 });
-});
 app.post('/getlinkresponse', (req, res) => {
-    cors(request, res, () => {
     const msg = req.body.msg;
     const parts = msg.split("|");
     const arpValue = parts[1];
@@ -81,7 +79,6 @@ app.post('/getlinkresponse', (req, res) => {
         res.setHeader("Content-Type", "text/html");
         res.status(200).send(htmlContent);
     }
-});
 });
 
 app.listen(port, () => {
