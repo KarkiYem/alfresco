@@ -1,7 +1,7 @@
 const billdeskjs = require("./gen_message");
 const express = require('express');
 const bodyParser = require('body-parser');
-
+const cors = require("cors")({ origin: true });
 const app = express();
 const port = 3000; 
 
@@ -15,19 +15,19 @@ const client = new billdeskjs(MID, SEC_ID, CHECKSUM_KEY, RETURN_URL);
 app.use(bodyParser.json());
 
 app.post('/getlink', (request, res) => {
+    cors(request, res, () => {
     const amount = request.body.amount;
     const id = request.body.id;
     const phone = request.body.phone;
     const order_id = request.body.order_id;
 
     const msg = client.get_message(id, amount, phone , order_id);
-    console.log(msg)
     const linkk = "https://pgi.billdesk.com/pgidsk/PGIMerchantPayment" + "?msg=" + msg;
     res.send(linkk);
-    console.log(linkk)
 });
-
+});
 app.post('/getlinkresponse', (req, res) => {
+    cors(request, res, () => {
     const msg = req.body.msg;
     const parts = msg.split("|");
     const arpValue = parts[1];
@@ -81,6 +81,7 @@ app.post('/getlinkresponse', (req, res) => {
         res.setHeader("Content-Type", "text/html");
         res.status(200).send(htmlContent);
     }
+});
 });
 
 app.listen(port, () => {
