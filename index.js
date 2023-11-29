@@ -13,7 +13,7 @@ const RETURN_URL = 'https://www.alfrescogrand.com/getlinkresponse';
 const client = new billdeskjs(MID, SEC_ID, CHECKSUM_KEY, RETURN_URL);
 
 app.use(bodyParser.json());
-app.use(cors());
+app.use(cors);
 
 app.post('/getlink', (request, res) => {
     const amount = request.body.amount;
@@ -30,8 +30,6 @@ app.post('/getlinkresponse', (req, res) => {
     const parts = msg.split("|");
     const arpValue = parts[1];
     const codeValue = parts[14];
-    console.log(arpValue)
-    console.log(codeValue)
 
     if (codeValue == "0300") {
         const htmlContent = `<!DOCTYPE html>
