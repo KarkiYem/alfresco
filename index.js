@@ -1,86 +1,124 @@
 const billdeskjs = require("./gen_message");
-const express = require('express');
-const bodyParser = require('body-parser');
+const express = require("express");
+const jwt = require("jsonwebtoken");
+const bodyParser = require("body-parser");
 const cors = require("cors")({ origin: true });
 const app = express();
-const port = 8000; 
-
-const MID = "BCRUISEPL";
-const SEC_ID = "bcruisepl";
-const CHECKSUM_KEY = "W0U5fRqcJe2GLEEqpYsm41CSiKLN73DJ";
-const RETURN_URL = 'https://www.alfrescogrand.com/getlinkresponse'; 
-
-const client = new billdeskjs(MID, SEC_ID, CHECKSUM_KEY, RETURN_URL);
-
+const port = 8000;
 app.use(bodyParser.json());
 app.use(cors);
 
-app.post('/getlink', (request, res) => {
-    const amount = request.body.amount;
-    const id = request.body.id;
-    const phone = request.body.phone;
-    const order_id = request.body.order_id;
-
-    const msg = client.get_message(id, amount, phone , order_id);
-    const linkk = "https://pgi.billdesk.com/pgidsk/PGIMerchantPayment" + "?msg=" + msg;
-    res.send(linkk);
-});
-app.post('/getlinkresponse', (req, res) => {
-    const msg = req.body.msg;
-    const parts = msg.split("|");
-    const arpValue = parts[1];
-    const codeValue = parts[14];
-
-    if (codeValue == "0300") {
-        const htmlContent = `<!DOCTYPE html>
-        <html lang="en">
-        <head>
-            <meta charset="UTF-8">
-            <meta name="viewport" content="width=device-width, initial-scale=1.0">
-            <title>Payment Completed</title>
-            <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-        </head>
-        <body>
-            <div class="container mt-5">
-                <div class="alert alert-success text-center">
-                    <h4>Payment Completed</h4>
-                    <p>You have successfully completed the Payment.</p>
-                </div>
-            </div>
+app.post("/getlink", (request, res) => {
+  try{
+    var pay = null
+    async function getDBPayload() {
+      try {
+        const payloadData = {
       
-            <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-            <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.min.js"></script>
-        </body>
-        </html>`;
-        res.setHeader("Content-Type", "text/html");
-        res.status(200).send(htmlContent);
-    } else {
-        const htmlContent = `<!DOCTYPE html>
-        <html lang="en">
-        <head>
-            <meta charset="UTF-8">
-            <meta name="viewport" content="width=device-width, initial-scale=1.0">
-            <title>Payment Failed</title>
-            <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-        </head>
-        <body>
-            <div class="container mt-5">
-                <div class="alert alert-danger text-center">
-                    <h4>Payment Failed</h4>
-                    <p>Your payment was not successful. Please try again later.</p>
-                </div>
-            </div>
-            <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-            <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.min.js"></script>
-        </body>
-        </html>`;
-        res.setHeader("Content-Type", "text/html");
-        res.status(200).send(htmlContent);
+  
+          mercid: "BCRUISEPL",
+          orderid: request.body.order_id,
+          amount: request.body.amount,
+          order_date: getCurrentDateTime(),
+          currency: "356",
+          ru: "https://www.example.com/merchant/api/pgresponse",
+          additional_info: {
+            additional_info1: "",
+            additional_info2: "",
+          },
+          itemcode: "DIRECT",
+          /* invoice: {
+            invoice_number: "",
+            invoice_display_number: "",
+            customer_name: "",
+            invoice_date: "",
+            gst_details: {
+              cgst: "8.00",
+              sgst: "8.00",
+              igst: "0.00",
+              gst: "16.00",
+              cess: "0.00",
+              gstincentive: "5.00",
+              gstpct: "16.00",
+              gstin: "12344567",
+            },
+          }, */
+          device: {
+            init_channel: "internet",
+            ip: "143.244.130.152",
+            user_agent:
+              "Mozilla/5.0(WindowsNT10.0;WOW64;rv:51.0)Gecko/20100101Firefox/51.0",
+            accept_header: "text/html",
+            fingerprintid: "61b12c18b5d0cf901be34a23ca64bb19",
+            browser_tz: "-330",
+            browser_color_depth: "32",
+            browser_java_enabled: "false",
+            browser_screen_height: "601",
+            browser_screen_width: "657",
+  
+            browser_language: "en-US",
+            browser_javascript_enabled: "true",
+          },
+        };
+        let payload = Object.assign(payloadData, "" || {});
+        console.log("payload", payload);
+  
+        // Define JWT headers
+        const jwtHeaders = {
+          alg: "HS256",
+          clientid: "bcruisepl",
+        };
+  
+        // Define your secret key
+        const secretKey = "W0U5fRqcJe2GLEEqpYsm41CSiKLN73DJ";
+  
+        const encodedPayload = jwt.sign(payload, secretKey, {
+          algorithm: "HS256",
+          header: jwtHeaders,
+        });
+  
+        pay = encodedPayload;
+  
+        return encodedPayload;
+      } catch (err) {
+        throw new Error(err);
+      }
     }
+    function getCurrentDateTime() {
+      const now = new Date();
+      const year = now.getFullYear();
+      const month = String(now.getMonth() + 1).padStart(2, "0"); // Months are zero-based
+      const day = String(now.getDate()).padStart(2, "0");
+      const hours = String(now.getUTCHours()).padStart(2, "0");
+      const minutes = String(now.getUTCMinutes()).padStart(2, "0");
+      const seconds = String(now.getUTCSeconds()).padStart(2, "0");
+      const timezoneOffsetMinutes = now.getTimezoneOffset();
+      const timezoneOffsetHours = Math.abs(
+        Math.floor(timezoneOffsetMinutes / 60)
+      );
+      const timezoneOffsetSign = timezoneOffsetMinutes > 0 ? "-" : "+";
+  
+      return `${year}-${month}-${day}T${hours}:${minutes}:${seconds}${timezoneOffsetSign}${String(
+        timezoneOffsetHours
+      ).padStart(2, "0")}:${String(Math.abs(timezoneOffsetMinutes) % 60).padStart(
+        2,
+        "0"
+      )}`;
+    }
+    getDBPayload();
+    res.status(200).send(pay);
+    console.log(res)
+  }catch(err){
+    res.status(201).send("failed");
+  }
+
 });
+
+
+
+
+
 
 app.listen(port, () => {
-    console.log(`Server is running on port ${port}`);
+  console.log(`Server is running on port ${port}`);
 });
-
-
